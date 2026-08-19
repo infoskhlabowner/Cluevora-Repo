@@ -1,0 +1,6 @@
+{
+  "name": "Cluevora",
+  "description": "Every Clue Tells A Story. A daily mystery and detective puzzle game.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
