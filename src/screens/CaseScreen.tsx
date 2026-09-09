@@ -1,9 +1,12 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { CASES } from "../data/cases";
 import { useStore } from "../store/useStore";
-import { ChevronLeft, FileText, Users, Clock, AlertTriangle, ArrowRight, ShieldCheck, Lightbulb } from "lucide-react";
+import { generateCaseVocab } from "../lib/vocabGenerator";
+import { getCaseImage } from "../lib/images";
+import { ChevronLeft, FileText, Users, Clock, AlertTriangle, ArrowRight, ShieldCheck, Lightbulb, PlayCircle, X } from "lucide-react";
 import { cn } from "../lib/utils";
+import VocabText from "../components/VocabText";
 import { motion, AnimatePresence } from "motion/react";
 
 type Tab = 'briefing' | 'suspects' | 'evidence' | 'timeline' | 'hints' | 'accuse';
@@ -11,16 +14,35 @@ type Tab = 'briefing' | 'suspects' | 'evidence' | 'timeline' | 'hints' | 'accuse
 export default function CaseScreen() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { stats, solveCase, spendCoins } = useStore();
+  const { stats, solveCase, spendCoins, setActiveDictionary } = useStore();
   const [activeTab, setActiveTab] = useState<Tab>('briefing');
   const [selectedSuspectId, setSelectedSuspectId] = useState<string | null>(null);
   const [selectedMotive, setSelectedMotive] = useState<string>('');
   const [selectedMethod, setSelectedMethod] = useState<string>('');
   const [unlockedHintCount, setUnlockedHintCount] = useState<number>(0);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [showAdModal, setShowAdModal] = useState<boolean>(false);
+  const [adTimeLeft, setAdTimeLeft] = useState<number>(5);
 
   const caseData = CASES.find(c => c.id === id);
   const isSolved = stats?.completedCases.includes(caseData?.id || '');
+
+
+  useEffect(() => {
+    if (caseData) {
+      // Gather all text
+      const fullText = [
+        caseData.introduction,
+        ...caseData.suspects.map(s => s.statement),
+        ...caseData.clues.map(c => c.description),
+        ...caseData.timeline.map(t => t.description)
+      ].join(' ');
+      
+      generateCaseVocab(fullText).then(dict => {
+        setActiveDictionary(dict);
+      });
+    }
+  }, [caseData, setActiveDictionary]);
 
   if (!caseData) return <div className="p-6">Case not found</div>;
 
@@ -35,6 +57,19 @@ export default function CaseScreen() {
     }
   };
 
+  const executeDeduction = async () => {
+    if (
+      selectedSuspectId === caseData.solution.culpritId && 
+      selectedMotive === caseData.solution.motive &&
+      selectedMethod === caseData.solution.method
+    ) {
+      await solveCase(caseData.id, caseData.rewards.xp, caseData.rewards.coins);
+      setActiveTab('accuse');
+    } else {
+      setErrorMsg("Incorrect deduction. Review the evidence and theory again.");
+    }
+  };
+
   const handleAccuse = async () => {
     setErrorMsg(null);
     if (!selectedSuspectId || !selectedMotive || !selectedMethod) {
@@ -42,19 +77,29 @@ export default function CaseScreen() {
       return;
     }
     
-    // Check if correct
-    if (
-      selectedSuspectId === caseData.solution.culpritId && 
-      selectedMotive === caseData.solution.motive &&
-      selectedMethod === caseData.solution.method
-    ) {
-      // Success
-      await solveCase(caseData.id, caseData.rewards.xp, caseData.rewards.coins);
-      setActiveTab('accuse'); // Stays on accuse to show success
+    // Day 1 to 6 is ad-free for everyone. Day 7+ has ads for free users.
+    if (!stats?.isPremium && caseData.dayNumber > 6) {
+      setShowAdModal(true);
+      setAdTimeLeft(5);
+      
+      // Simulate an unskippable 5 second ad
+      let left = 5;
+      const interval = setInterval(() => {
+        left -= 1;
+        setAdTimeLeft(left);
+        if (left <= 0) {
+          clearInterval(interval);
+        }
+      }, 1000);
+
     } else {
-      // Incorrect logic
-      setErrorMsg("Incorrect deduction. Review the evidence and theory again.");
+      await executeDeduction();
     }
+  };
+
+  const handleCloseAd = async () => {
+    setShowAdModal(false);
+    await executeDeduction();
   };
 
   return (
@@ -104,11 +149,17 @@ export default function CaseScreen() {
             {/* BRIEFING */}
             {activeTab === 'briefing' && (
               <div className="space-y-6 pb-12">
+                
+                <div className="rounded-[32px] overflow-hidden mb-6 border border-[#E9EDC6] shadow-sm relative h-48 md:h-64">
+                  <img src={getCaseImage(caseData.dayNumber)} referrerPolicy="no-referrer" alt="Case Cover" className="w-full h-full object-cover" />
+                </div>
+                
                 <div className="bg-white rounded-[32px] p-6 border border-[#E9EDC6] shadow-sm">
+
                   <h2 className="text-xs text-[#434832] opacity-60 uppercase tracking-widest font-bold mb-4 flex items-center gap-2">
                     <FileText size={14} /> Introduction
                   </h2>
-                  <p className="text-[#434832] leading-relaxed text-sm">{caseData.introduction}</p>
+                  <p className="text-[#434832] leading-relaxed text-sm"><VocabText>{caseData.introduction}</VocabText></p>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
@@ -138,7 +189,7 @@ export default function CaseScreen() {
                     </div>
                     <div className="p-5 bg-white">
                       <p className="text-[10px] text-[#D4A373] font-bold uppercase tracking-wider mb-2">Statement</p>
-                      <p className="text-sm text-[#434832] italic leading-relaxed">"{s.statement}"</p>
+                      <p className="text-sm text-[#434832] italic leading-relaxed">"<VocabText>{s.statement}</VocabText>"</p>
                     </div>
                   </div>
                 ))}
@@ -159,7 +210,7 @@ export default function CaseScreen() {
                     <div>
                       <h3 className="text-base font-serif italic text-[#2D331F] mb-1">{c.title}</h3>
                       <p className="text-[10px] font-bold text-[#D4A373] uppercase tracking-wider mb-2">Source: {c.source}</p>
-                      <p className="text-sm text-[#434832] leading-relaxed">{c.description}</p>
+                      <p className="text-sm text-[#434832] leading-relaxed"><VocabText>{c.description}</VocabText></p>
                     </div>
                   </div>
                 ))}
@@ -177,7 +228,7 @@ export default function CaseScreen() {
                     <div key={i} className="relative pl-6">
                       <div className="absolute -left-[5px] top-1.5 w-2 h-2 rounded-full bg-[#7D8F69] ring-4 ring-[#FDFBF7]" />
                       <span className="text-xs font-bold uppercase tracking-widest text-[#D4A373] mb-1 block">{event.time}</span>
-                      <p className="text-sm text-[#434832] leading-relaxed">{event.description}</p>
+                      <p className="text-sm text-[#434832] leading-relaxed"><VocabText>{event.description}</VocabText></p>
                     </div>
                   ))}
                 </div>
@@ -204,7 +255,7 @@ export default function CaseScreen() {
                       <div key={i} className="bg-white rounded-[24px] border border-[#E9EDC6] p-5 shadow-sm">
                         <h3 className="text-[10px] font-bold uppercase tracking-widest text-[#D4A373] mb-3">Hint #{i + 1}</h3>
                         {isUnlocked ? (
-                          <p className="text-sm text-[#434832] leading-relaxed">{hint}</p>
+                          <p className="text-sm text-[#434832] leading-relaxed"><VocabText>{hint}</VocabText></p>
                         ) : (
                           <>
                             <AnimatePresence>
@@ -341,6 +392,55 @@ export default function CaseScreen() {
           </motion.div>
         </AnimatePresence>
       </main>
+
+      {/* Ad Mock Modal */}
+      <AnimatePresence>
+        {showAdModal && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[100] bg-black flex flex-col items-center justify-center p-6"
+          >
+            <div className="absolute top-6 left-6 right-6 flex justify-between items-center text-white/50 text-xs font-bold uppercase tracking-widest">
+              <span>Advertisement</span>
+              {adTimeLeft > 0 ? (
+                <span>Reward in {adTimeLeft}s</span>
+              ) : (
+                <button 
+                  onClick={handleCloseAd}
+                  className="bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-full transition-colors flex items-center gap-2"
+                >
+                  Close <X size={14} />
+                </button>
+              )}
+            </div>
+
+            <div className="max-w-xs text-center space-y-6">
+              <div className="w-16 h-16 bg-white/10 rounded-full flex items-center justify-center mx-auto mb-6">
+                <PlayCircle size={32} className="text-white/50" />
+              </div>
+              <h2 className="text-2xl font-serif italic text-white mb-2">A word from our sponsors</h2>
+              <p className="text-sm text-white/70 leading-relaxed">
+                Free operatives must watch a brief transmission before their deduction results are decrypted. (To be managed by RevenueCat / Google Play)
+              </p>
+              
+              <div className="mt-8 border border-white/20 rounded-2xl p-6 bg-white/5">
+                <p className="text-[#E9EDC6] font-bold mb-2">Upgrade to Premium</p>
+                <p className="text-xs text-white/60 mb-4">Never wait for deduction results again.</p>
+                <button 
+                  onClick={() => {
+                    navigate('/settings');
+                  }}
+                  className="w-full bg-[#D4A373] hover:bg-[#b0875e] text-white py-3 rounded-full text-xs font-bold uppercase tracking-widest transition-colors"
+                >
+                  View Plans
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

@@ -1,4 +1,5 @@
-import { create } from 'zustand';
+const fs = require('fs');
+const content = `import { create } from 'zustand';
 import { auth, db } from '../lib/firebase';
 import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
 import { 
@@ -330,3 +331,5 @@ export const useStore = create<GameState>((set, get) => ({
     await updateDoc(userRef, { premiumIcon: icon });
   }
 }));
+`;
+fs.writeFileSync('src/store/useStore.ts', content);

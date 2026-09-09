@@ -1,0 +1,74 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "User profile and stats",
+      "type": "object",
+      "properties": {
+        "email": { "type": "string" },
+        "xp": { "type": "number" },
+        "coins": { "type": "number" },
+        "rank": { "type": "string" },
+        "role": { "type": "string", "enum": ["USER", "PREMIUM_USER", "MODERATOR", "ADMIN", "SUPER_ADMIN"] },
+        "isDisabled": { "type": "boolean" },
+        "isPremium": { "type": "boolean" }
+      },
+      "required": ["role"]
+    },
+    "Case": {
+      "title": "Case",
+      "description": "Detective case",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "status": { "type": "string", "enum": ["DRAFT", "REVIEW", "PUBLISHED", "ARCHIVED"] },
+        "difficulty": { "type": "string" },
+        "reward": { "type": "number" }
+      },
+      "required": ["title", "status"]
+    },
+    "AuditLog": {
+      "title": "AuditLog",
+      "description": "Logs sensitive admin actions",
+      "type": "object",
+      "properties": {
+        "action": { "type": "string" },
+        "adminId": { "type": "string" },
+        "targetId": { "type": "string" },
+        "timestamp": { "type": "number" }
+      }
+    },
+    "DiscountCode": {
+      "title": "DiscountCode",
+      "description": "Promo codes",
+      "type": "object",
+      "properties": {
+        "code": { "type": "string" },
+        "discount": { "type": "number" },
+        "startDate": { "type": "number" },
+        "expiration": { "type": "number" },
+        "redemptionLimit": { "type": "number" },
+        "perUserLimit": { "type": "number" },
+        "active": { "type": "boolean" }
+      }
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/User" },
+      "description": "User profiles"
+    },
+    "/cases/{caseId}": {
+      "schema": { "$ref": "#/entities/Case" },
+      "description": "Cases"
+    },
+    "/audit_logs/{logId}": {
+      "schema": { "$ref": "#/entities/AuditLog" },
+      "description": "Audit logs for actions"
+    },
+    "/discount_codes/{codeId}": {
+      "schema": { "$ref": "#/entities/DiscountCode" },
+      "description": "Discount codes"
+    }
+  }
+}

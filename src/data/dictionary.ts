@@ -1,0 +1,20 @@
+export const MYSTERY_DICTIONARY: Record<string, string> = {
+  'alibi': 'Evidence that proves someone was in a different place at the time of a crime.',
+  'motive': 'A reason for doing something, especially a crime.',
+  'suspect': 'A person thought to be guilty of a crime or offense.',
+  'culprit': 'A person who is responsible for a crime or other misdeed.',
+  'embezzlement': 'Theft or misappropriation of funds placed in one\'s trust.',
+  'blackmail': 'Demanding money from a person in return for not revealing compromising information.',
+  'espionage': 'The practice of spying or of using spies, typically by governments or companies.',
+  'testimony': 'A formal written or spoken statement, especially one given in a court of law.',
+  'accomplice': 'A person who helps another commit a crime.',
+  'ledger': 'A book or other collection of financial accounts.',
+  'artifact': 'An object made by a human being, typically an item of cultural or historical interest.',
+  'hacked': 'Used a computer to gain unauthorized access to data in a system.',
+  'bribed': 'Dishonestly persuaded someone to act in one\'s favor by a gift of money or other inducement.',
+  'restricted': 'Limited in extent, number, scope, or action.',
+  'incident': 'An event or occurrence, often a negative or criminal one.',
+  'contradict': 'Deny the truth of a statement, especially by asserting the opposite.',
+  'extortion': 'The practice of obtaining something, especially money, through force or threats.',
+  'fraud': 'Wrongful or criminal deception intended to result in financial or personal gain.'
+};

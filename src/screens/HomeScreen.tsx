@@ -1,5 +1,6 @@
 import { useStore } from "../store/useStore";
 import { CASES } from "../data/cases";
+import { getCaseImage } from "../lib/images";
 import { Link } from "react-router-dom";
 import { ShieldAlert, Flame, CircleDollarSign, ChevronRight, Clock, Star } from "lucide-react";
 import { motion } from "motion/react";
@@ -7,13 +8,16 @@ import { motion } from "motion/react";
 export default function HomeScreen() {
   const { stats } = useStore();
   
-  // Progress dynamically based on how many cases the user has completed
-  const nextCaseIndex = stats?.completedCases.length || 0;
-  // If they somehow finish all 356, loop back around
-  const todayCase = CASES[nextCaseIndex % CASES.length];
-  const isSolved = stats?.completedCases.includes(todayCase.id);
-
   if (!stats) return null;
+
+  const todayStr = new Date().toISOString().split('T')[0];
+  const hasPlayedToday = stats.lastSolvedDate === todayStr;
+
+  // If they have played today, show the case they solved.
+  // Otherwise, show the next unsolved case.
+  const caseIndexToShow = hasPlayedToday ? Math.max(0, stats.completedCases.length - 1) : stats.completedCases.length;
+  const todayCase = CASES[caseIndexToShow % CASES.length];
+  const isSolved = stats.completedCases.includes(todayCase.id);
 
   return (
     <div className="p-6 pt-12">
@@ -47,16 +51,23 @@ export default function HomeScreen() {
           <span className="text-xs text-[#7D8F69] font-bold">Case #{String(todayCase.dayNumber).padStart(3, '0')}</span>
         </div>
 
-        <Link to={`/case/${todayCase.id}`}>
+        <Link to={hasPlayedToday ? '#' : `/case/${todayCase.id}`} className={hasPlayedToday ? 'cursor-default block' : 'block'}>
           <motion.div 
-            whileTap={{ scale: 0.98 }}
-            className="relative bg-white border border-[#E9EDC6] rounded-[32px] p-6 overflow-hidden shadow-sm group"
+            whileTap={hasPlayedToday ? {} : { scale: 0.98 }}
+            className={`relative bg-white border border-[#E9EDC6] rounded-[32px] p-6 overflow-hidden shadow-sm ${!hasPlayedToday && 'group'}`}
           >
+            
             {/* Background accent */}
             <div className="absolute top-0 right-0 w-32 h-32 bg-[#E9EDC6]/40 rounded-full blur-2xl -mr-10 -mt-10 pointer-events-none" />
             
+            {/* Case Image */}
+            <div className="relative h-40 -mt-6 -mx-6 mb-6 overflow-hidden rounded-t-[32px] border-b border-[#E9EDC6]">
+              <img src={getCaseImage(todayCase.dayNumber)} referrerPolicy="no-referrer" alt="Case Cover" className="w-full h-full object-cover" />
+            </div>
+
+            
             <div className="flex justify-between items-start mb-4 relative z-10">
-              <h3 className="text-2xl font-serif text-[#2D331F] italic group-hover:text-[#7D8F69] transition-colors leading-tight pr-4">
+              <h3 className={`text-2xl font-serif text-[#2D331F] italic leading-tight pr-4 ${!hasPlayedToday && 'group-hover:text-[#7D8F69] transition-colors'}`}>
                 {todayCase.title}
               </h3>
               {isSolved && (
@@ -78,8 +89,14 @@ export default function HomeScreen() {
             </div>
 
             <div className="flex items-center justify-between text-[#434832] text-sm font-semibold tracking-wide relative z-10">
-              {isSolved ? 'Review Case File' : 'Start Investigation'}
-              <ChevronRight size={18} className="group-hover:translate-x-1 transition-transform text-[#7D8F69]" />
+              {hasPlayedToday ? (
+                <span className="text-[#7D8F69] italic">Great work! Come back tomorrow for the next case.</span>
+              ) : (
+                <>
+                  Start Investigation
+                  <ChevronRight size={18} className="group-hover:translate-x-1 transition-transform text-[#7D8F69]" />
+                </>
+              )}
             </div>
           </motion.div>
         </Link>

@@ -1,14 +1,68 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    function isAdmin() {
-      return exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
-             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true;
+    // 1. Global Safety Net
+    match /{document=**} {
+      allow read, write: if false;
     }
 
+    // 3. Primitives
+    function isSignedIn() { return request.auth != null; }
+    
+    function getUserData() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+    
+    function hasRole(roleName) {
+      return exists(/databases/$(database)/documents/users/$(request.auth.uid)) && (getUserData().get('role', 'USER') == roleName || (roleName == 'SUPER_ADMIN' && getUserData().get('isAdmin', false) == true));
+    }
+
+    function isAtLeastAdmin() {
+      return hasRole('ADMIN') || hasRole('SUPER_ADMIN');
+    }
+    
+    function isSuperAdmin() {
+      return hasRole('SUPER_ADMIN');
+    }
+
+    function isAtLeastModerator() {
+      return hasRole('MODERATOR') || isAtLeastAdmin();
+    }
+
+    // Users Collection
     match /users/{userId} {
-      allow read: if request.auth != null;
-      allow write: if request.auth != null && (request.auth.uid == userId || isAdmin());
+      allow read: if isSignedIn();
+      
+      // Allow users to create their own profile, default to USER role
+      allow create: if isSignedIn() && request.auth.uid == userId 
+                    && request.resource.data.keys().hasAll(['role'])
+                    && request.resource.data.role == 'USER';
+
+      allow update: if isSignedIn() && (
+        // Users can update non-sensitive fields
+        (request.auth.uid == userId && 
+         !request.resource.data.diff(resource.data).affectedKeys().hasAny(['isPremium', 'isDisabled'])) ||
+        // Admins can update roles, premium, disabled status (but not self-promote to SUPER_ADMIN unless already SUPER_ADMIN)
+        (isAtLeastAdmin() && 
+         // Only SUPER_ADMIN can assign SUPER_ADMIN role
+         (request.resource.data.get('role', 'USER') != 'SUPER_ADMIN' || isSuperAdmin()))
+      );
+    }
+
+    match /cases/{caseId} {
+      allow read: if true; // Or restrict to published if not admin
+      allow create, update, delete: if isAtLeastModerator();
+    }
+
+    match /audit_logs/{logId} {
+      allow read: if isAtLeastAdmin();
+      allow create: if isAtLeastAdmin();
+      allow update, delete: if false; // Immutable
+    }
+    
+    match /discount_codes/{codeId} {
+      allow read: if isSignedIn(); // Need to read to apply
+      allow create, update, delete: if isAtLeastAdmin();
     }
   }
 }
