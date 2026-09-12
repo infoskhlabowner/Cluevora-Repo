@@ -23,7 +23,6 @@ export default function HomeScreen() {
     <div className="p-6 pt-12">
       <header className="flex items-center justify-between mb-8">
         <div>
-          <p className="text-[#7D8F69] text-xs font-bold tracking-widest uppercase mb-1 opacity-80">Good Evening</p>
           <h1 className="text-3xl font-serif text-[#2D331F] italic flex items-center gap-2">
             Detective 
             {stats.isPremium ? (

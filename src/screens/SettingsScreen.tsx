@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useStore } from "../store/useStore";
 import { Settings, ShieldAlert, Key, LogOut, Trash2, Languages, Star, Users } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { PWAInstallButton } from "../components/PWAInstallButton";
 
 export default function SettingsScreen() {
   const { stats, purchasePremium, signOut, toggleLearningMode } = useStore();
@@ -27,6 +28,7 @@ export default function SettingsScreen() {
       )}
 
       <div className="space-y-6">
+        <PWAInstallButton />
         
         <section>
           <h2 className="text-xs font-bold uppercase tracking-widest text-[#D4A373] mb-4">Account</h2>
