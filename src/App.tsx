@@ -17,6 +17,8 @@ import LeaderboardScreen from './screens/LeaderboardScreen';
 import EvidenceScreen from './screens/EvidenceScreen';
 import AdminScreen from './screens/AdminScreen';
 import SettingsScreen from './screens/SettingsScreen';
+import PrivacyPolicyScreen from './screens/PrivacyPolicyScreen';
+import TermsOfServiceScreen from './screens/TermsOfServiceScreen';
 
 export default function App() {
   const { user, loading, initAuth } = useStore();
@@ -37,6 +39,8 @@ export default function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/case/:id" element={<CaseScreen />} />
+        <Route path="/privacy" element={<PrivacyPolicyScreen />} />
+        <Route path="/terms" element={<TermsOfServiceScreen />} />
         
         <Route path="/" element={<Layout><HomeScreen /></Layout>} />
         <Route path="/cases" element={<Layout><CasesScreen /></Layout>} />
