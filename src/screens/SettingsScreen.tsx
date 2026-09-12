@@ -83,7 +83,7 @@ export default function SettingsScreen() {
           <div className="bg-white rounded-[24px] border border-[#E9EDC6] overflow-hidden shadow-sm text-sm font-semibold text-[#434832]">
             <Link to="/privacy" className="flex items-center gap-3 p-5 border-b border-[#E9EDC6] hover:bg-[#F5F2ED]">Privacy Policy</Link>
             <Link to="/terms" className="flex items-center gap-3 p-5 border-b border-[#E9EDC6] hover:bg-[#F5F2ED]">Terms of Service</Link>
-            <a href="mailto:support@cluevora.com" className="flex items-center gap-3 p-5 hover:bg-[#F5F2ED]">Contact Support</a>
+            <a href="mailto:info.skhlabs@gmail.com" className="flex items-center gap-3 p-5 hover:bg-[#F5F2ED]">Contact Support</a>
           </div>
         </section>
       </div>

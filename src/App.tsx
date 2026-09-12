@@ -31,26 +31,29 @@ export default function App() {
     return <div className="min-h-screen bg-slate-950 flex items-center justify-center text-indigo-500">Loading...</div>;
   }
 
-  if (!user) {
-    return <AuthScreen />;
-  }
-
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/case/:id" element={<CaseScreen />} />
+        {/* Public Routes */}
         <Route path="/privacy" element={<PrivacyPolicyScreen />} />
         <Route path="/terms" element={<TermsOfServiceScreen />} />
         
-        <Route path="/" element={<Layout><HomeScreen /></Layout>} />
-        <Route path="/cases" element={<Layout><CasesScreen /></Layout>} />
-        <Route path="/evidence" element={<Layout><EvidenceScreen /></Layout>} />
-        <Route path="/leaderboard" element={<Layout><LeaderboardScreen /></Layout>} />
-        <Route path="/profile" element={<Layout><ProfileScreen /></Layout>} />
-        <Route path="/settings" element={<Layout><SettingsScreen /></Layout>} />
-        <Route path="/admin" element={<Layout><AdminScreen /></Layout>} />
-        
-        <Route path="*" element={<Navigate to="/" replace />} />
+        {/* Protected Routes */}
+        {!user ? (
+          <Route path="*" element={<AuthScreen />} />
+        ) : (
+          <>
+            <Route path="/case/:id" element={<CaseScreen />} />
+            <Route path="/" element={<Layout><HomeScreen /></Layout>} />
+            <Route path="/cases" element={<Layout><CasesScreen /></Layout>} />
+            <Route path="/evidence" element={<Layout><EvidenceScreen /></Layout>} />
+            <Route path="/leaderboard" element={<Layout><LeaderboardScreen /></Layout>} />
+            <Route path="/profile" element={<Layout><ProfileScreen /></Layout>} />
+            <Route path="/settings" element={<Layout><SettingsScreen /></Layout>} />
+            <Route path="/admin" element={<Layout><AdminScreen /></Layout>} />
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </>
+        )}
       </Routes>
     </BrowserRouter>
   );

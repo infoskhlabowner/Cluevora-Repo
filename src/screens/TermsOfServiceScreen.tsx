@@ -37,7 +37,7 @@ export default function TermsOfServiceScreen() {
         <p>We reserve the right, at our sole discretion, to modify or replace these Terms at any time. What constitutes a material change will be determined at our sole discretion.</p>
 
         <h3 className="text-lg font-bold mt-6 mb-2">7. Contact Us</h3>
-        <p>If you have any questions about these Terms, please contact us at: support@cluevora.com</p>
+        <p>If you have any questions about these Terms, please contact us at: info.skhlabs@gmail.com</p>
       </div>
     </div>
   );

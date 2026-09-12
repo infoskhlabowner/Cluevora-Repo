@@ -43,7 +43,7 @@ export default function PrivacyPolicyScreen() {
         <p>We use administrative, technical, and physical security measures to help protect your personal information. While we have taken reasonable steps to secure the personal information you provide to us, please be aware that despite our efforts, no security measures are perfect or impenetrable.</p>
 
         <h3 className="text-lg font-bold mt-6 mb-2">6. Contact Us</h3>
-        <p>If you have questions or comments about this Privacy Policy, please contact us at: support@cluevora.com</p>
+        <p>If you have questions or comments about this Privacy Policy, please contact us at: info.skhlabs@gmail.com</p>
       </div>
     </div>
   );
